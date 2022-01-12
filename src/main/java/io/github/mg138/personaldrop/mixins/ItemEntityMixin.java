@@ -14,16 +14,24 @@ import java.util.UUID;
 
 @Mixin(ItemEntity.class)
 public abstract class ItemEntityMixin {
+
+    @Shadow @Nullable public abstract UUID getThrower();
+
+    @Shadow public abstract void setOwner(@Nullable UUID uuid);
+
     @Shadow @Nullable public abstract UUID getOwner();
 
     @Inject(
             at = @At("HEAD"),
-            method = "onPlayerCollision(Lnet/minecraft/entity/player/PlayerEntity;)V",
-            cancellable = true
+            method = "onPlayerCollision(Lnet/minecraft/entity/player/PlayerEntity;)V"
     )
     public void personal_drop_onPlayerCollision(PlayerEntity player, CallbackInfo ci) {
-        if (!Objects.equals(getOwner(), player.getUuid())) {
-            ci.cancel();
+        if (getOwner() == null) {
+            final UUID thrower = getThrower();
+
+            if (thrower != null) {
+                setOwner(thrower);
+            }
         }
     }
 }
